@@ -36,12 +36,35 @@ std::string cinSchoolObject(std::string text = "Введите предмет(st
 	}
 }
 
+
+/*
+* null ссылка обозначает завершение поиска в массиве
+*/
+std::string* search(std::vector<std::string>& r)
+{
+	std::cout << "\e[1;1H\e[2J";
+	while (true)
+	{
+		std::string a(cinSchoolObject());
+		if (a == "stop")
+			break;
+		for (auto& e : r)
+		{
+			if (a == e)
+				return &e;
+		}
+		std::cout << "элемент не найден попробайте заново.\n";
+	}
+	return nullptr;
+}
+
 int main()
 {
 	setlocale(LC_ALL, "Russian");
+
+	std::vector<std::string> schoolObject;
 #pragma region initSchoolObject
 
-    std::vector<std::string> schoolObject;
 	while (true)
 	{
 		std::string object(cinSchoolObject());
@@ -54,16 +77,23 @@ int main()
 
 #pragma endregion
 
+	std::vector<Teacher> teacher;
 #pragma region initTeacher
 
-	std::vector<Teacher> teacher;
 	while (true)
 	{
 		std::string name(cinSchoolObject("Введите имя учителя: "));
 		std::vector<std::string*> object;
 		while (true)
 		{
-
+			auto a(search(schoolObject));
+			if (a == nullptr)
+				break;
+			object.push_back(a);
+			/*
+			* добавить инициализации нового компонента в массив teacher
+			* добавить выход из цикла teacher
+			*/
 		}
 	}
 
