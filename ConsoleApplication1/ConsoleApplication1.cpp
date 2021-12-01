@@ -2,20 +2,106 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <Windows.h>
 
 class Teacher
 {
 
 	std::string m_name;
-	std::vector<std::string> &m_schoolObject;
+	//int m_maxLesson;
+	std::vector<const std::string*> m_schoolObject;
 
 public:
-	Teacher(std::string name, std::vector<std::string> &schoolObject) : m_name(name), m_schoolObject(schoolObject)
+	Teacher(std::string& name, std::vector<const std::string*> &schoolObject) : m_name(name), m_schoolObject(schoolObject)
 	{
 
 	}
+
+	const std::string& getName() const
+	{
+		return m_name;
+	}
+
+	/*
+	* возвращает массив
+	*/
+	const std::vector<const std::string*>& getObject() const
+	{
+		return m_schoolObject;
+	}
+
 	~Teacher()
 	{}
+
+	Teacher& operator=(const Teacher& r)
+	{
+		m_name = r.m_name;
+		m_schoolObject = r.m_schoolObject;
+		return *this;
+	}
+
+	friend std::ostream& operator<< (std::ostream& out, const Teacher& teacher);
+};
+
+std::ostream& operator<<(std::ostream& out, const Teacher& teacher)
+{
+	out << " учитель: " << teacher.m_name << '\n';
+	out << "предмет(ы):\n";
+	for (auto& a : teacher.m_schoolObject)
+		out << a << '\n';
+	return out;
+}
+
+class Lesson
+{
+	const Teacher& m_teacher;
+	const std::string& m_schoolObject;
+
+public:
+	Lesson(const Teacher* teacher, const std::string* schoolObject)
+		: m_teacher(*teacher), m_schoolObject(*schoolObject) {}
+
+	const Teacher& getTeacher() const
+	{
+		return m_teacher;
+	}
+
+	const std::string& getShcoolObject() const
+	{
+		return m_schoolObject;
+	}
+};
+
+class TimeLesson
+{
+	Lesson m_lesson;
+	int m_time;
+
+public:
+	TimeLesson(const Lesson& lesson, int time) : m_lesson(lesson), m_time(time)
+	{}
+
+	const Lesson& getLesson() const
+	{
+		return m_lesson;
+	}
+
+	int getTime() const
+	{
+		return m_time;
+	}
+};
+
+class SchoolClass
+{
+	int m_number;
+	char m_parallel;
+	int m_dayLesson;
+	std::vector<TimeLesson> m_timeLesson;
+
+public:
+	SchoolClass(int number, char parallel,int dayLesson, std::vector<TimeLesson>& timeLesson)
+		: m_number(number), m_parallel(parallel), m_dayLesson(dayLesson), m_timeLesson(timeLesson) {}
 };
 
 std::string cinSchoolObject(std::string text = "Введите предмет(stop): ")
@@ -36,16 +122,35 @@ std::string cinSchoolObject(std::string text = "Введите предмет(st
 	}
 }
 
+int cinInt(std::string text = "Сколько дней учится класс: ")
+{
+	while (true)
+	{
+		std::cout << text;
+		int a;
+		std::cin >> a;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			std::cin.ignore(32767, '\n');
+		}
+		else
+			return a;
+	}
+}
 
 /*
 * null ссылка обозначает завершение поиска в массиве
 */
-std::string* search(std::vector<std::string>& r)
+std::string* search(std::vector<std::string>& r, std::string text = "Введите предмет(stop): ", std::string text2 = "Предметы: ")
 {
-	std::cout << "\e[1;1H\e[2J";
+	std::cout << text2 << "\n";
+	for (auto& a : r)
+		std::cout << a << '\n';
 	while (true)
 	{
-		std::string a(cinSchoolObject());
+		std::string a(cinSchoolObject(text));
 		if (a == "stop")
 			break;
 		for (auto& e : r)
@@ -60,7 +165,8 @@ std::string* search(std::vector<std::string>& r)
 
 int main()
 {
-	setlocale(LC_ALL, "Russian");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 
 	std::vector<std::string> schoolObject;
 #pragma region initSchoolObject
@@ -68,11 +174,11 @@ int main()
 	while (true)
 	{
 		std::string object(cinSchoolObject());
-		if (object == "stop")
-			break;
+		if (object == "stop")	break;
 		schoolObject.push_back(object);
 	}
 
+	system("cls");
 	std::sort(schoolObject.begin(), schoolObject.end());
 
 #pragma endregion
@@ -80,21 +186,76 @@ int main()
 	std::vector<Teacher> teacher;
 #pragma region initTeacher
 
+	std::cout << "Предметы: \n";
+	for (auto& a : schoolObject)
+		std::cout << a << '\n';
+
 	while (true)
 	{
 		std::string name(cinSchoolObject("Введите имя учителя: "));
-		std::vector<std::string*> object;
+		std::vector<const std::string*> object;
 		while (true)
 		{
 			auto a(search(schoolObject));
 			if (a == nullptr)
 				break;
 			object.push_back(a);
-			/*
-			* добавить инициализации нового компонента в массив teacher
-			* добавить выход из цикла teacher
-			*/
 		}
+		teacher.push_back(Teacher(name, object));
+		if (cinSchoolObject("Вводить ещё учителя(yes, no): ") == "no")	break;
+	}
+
+	system("cls");
+	struct {
+		bool operator()(Teacher& a, Teacher& b) const { return a.getName() < b.getName(); }
+	} customLess;
+	std::sort(teacher.begin(), teacher.end(), customLess);
+
+#pragma endregion
+	
+	std::vector<SchoolClass> schoolClass;
+#pragma region initSchoolClass
+
+	while (true)
+	{
+		int number(cinInt("Введите номер класа: "));
+		char parallel(cinSchoolObject()[0]);
+		int dayLesson(cinInt());
+		std::vector<TimeLesson> timeLesson;
+		while (true)
+		{
+			std::string& object(*search(schoolObject));
+			std::cout << "Учителя преподающие предмет: \n\n";
+			for (auto& a : teacher)
+			{
+				for (auto& r : a.getObject())
+				{
+					if (*r == object)
+						std::cout << a;
+				}
+			}
+			std::string tea(cinSchoolObject("кто преподаёт предмет: "));
+			Teacher* teas = nullptr;
+			while (teas == nullptr)
+			{
+				std::string tea(cinSchoolObject("кто преподаёт предмет: "));
+				for (auto& a : teacher)
+				{
+					if (a.getName() == tea)
+					{
+						teas = &a;
+						break;
+					}
+				}
+				if (teas != nullptr)	break;
+				std::cout << "Учитель не найден, попробуйте снова.\n";
+			}
+			int time(cinInt("Сколько часов в неделю идёт урок: "));
+			timeLesson.push_back(TimeLesson(Lesson(teas, &object), time));
+			if (cinSchoolObject("Есть ещё урок(yes, no): ") == "no")	break;
+		}
+		schoolClass.push_back(SchoolClass(number, parallel, dayLesson, timeLesson));
+		if (cinSchoolObject("Есть ещё класс(yes, no): ") == "no")	break;
 	}
 
 #pragma endregion
