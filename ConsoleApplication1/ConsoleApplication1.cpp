@@ -45,10 +45,10 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const Teacher& teacher)
 {
-	out << " учитель: " << teacher.m_name << '\n';
+	out << "учитель: " << teacher.m_name << '\n';
 	out << "предмет(ы):\n";
-	for (auto& a : teacher.m_schoolObject)
-		out << a << '\n';
+	for (auto a : teacher.m_schoolObject)
+		out << *a << '\n';
 	return out;
 }
 
@@ -136,6 +136,7 @@ int cinInt(std::string text = "Сколько дней учится класс: 
 			std::cin.ignore(32767, '\n');
 		}
 		else
+			std::cin.ignore(32767, '\n');
 			return a;
 	}
 }
@@ -143,11 +144,8 @@ int cinInt(std::string text = "Сколько дней учится класс: 
 /*
 * null ссылка обозначает завершение поиска в массиве
 */
-std::string* search(std::vector<std::string>& r, std::string text = "Введите предмет(stop): ", std::string text2 = "Предметы: ")
+std::string* search(std::vector<std::string>& r, std::string text = "Введите предмет(stop): ")
 {
-	std::cout << text2 << "\n";
-	for (auto& a : r)
-		std::cout << a << '\n';
 	while (true)
 	{
 		std::string a(cinSchoolObject(text));
@@ -196,7 +194,7 @@ int main()
 		std::vector<const std::string*> object;
 		while (true)
 		{
-			auto a(search(schoolObject));
+			std::string* a(search(schoolObject));
 			if (a == nullptr)
 				break;
 			object.push_back(a);
@@ -219,7 +217,7 @@ int main()
 	while (true)
 	{
 		int number(cinInt("Введите номер класа: "));
-		char parallel(cinSchoolObject()[0]);
+		char parallel(cinSchoolObject("Введите паралель: ")[0]);
 		int dayLesson(cinInt());
 		std::vector<TimeLesson> timeLesson;
 		while (true)
@@ -234,7 +232,6 @@ int main()
 						std::cout << a;
 				}
 			}
-			std::string tea(cinSchoolObject("кто преподаёт предмет: "));
 			Teacher* teas = nullptr;
 			while (teas == nullptr)
 			{
@@ -251,6 +248,7 @@ int main()
 				std::cout << "Учитель не найден, попробуйте снова.\n";
 			}
 			int time(cinInt("Сколько часов в неделю идёт урок: "));
+
 			timeLesson.push_back(TimeLesson(Lesson(teas, &object), time));
 			if (cinSchoolObject("Есть ещё урок(yes, no): ") == "no")	break;
 		}
@@ -259,5 +257,7 @@ int main()
 	}
 
 #pragma endregion
+
+
 
 }
