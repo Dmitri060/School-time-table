@@ -4,15 +4,36 @@
 #include <algorithm>
 #include <Windows.h>
 
+class NameClass
+{
+	int m_number;
+	char m_parallel;
+public:
+	NameClass(int numder, char parallel) : m_number(numder), m_parallel(parallel) {}
+
+	int getNumber() const
+	{
+		return m_number;
+	}
+
+	int getParallel() const
+	{
+		return m_parallel;
+	}
+};
+
 class Teacher
 {
 
 	std::string m_name;
-	//int m_maxLesson;
+	int m_maxLessonDay;
 	std::vector<const std::string*> m_schoolObject;
 
+	std::vector<std::vector<NameClass>> m_nameClass;
+
 public:
-	Teacher(std::string& name, std::vector<const std::string*> &schoolObject) : m_name(name), m_schoolObject(schoolObject)
+	Teacher(std::string& name, int maxLessonDay, std::vector<const std::string*> &schoolObject) 
+		: m_name(name), m_maxLessonDay(maxLessonDay), m_schoolObject(schoolObject)
 	{
 
 	}
@@ -30,14 +51,16 @@ public:
 		return m_schoolObject;
 	}
 
-	~Teacher()
-	{}
-
 	Teacher& operator=(const Teacher& r)
 	{
 		m_name = r.m_name;
 		m_schoolObject = r.m_schoolObject;
 		return *this;
+	}
+
+	void newLesson(int day, const NameClass& nameClass)
+	{
+		m_nameClass[day].push_back(nameClass);
 	}
 
 	friend std::ostream& operator<< (std::ostream& out, const Teacher& teacher);
@@ -99,9 +122,25 @@ class SchoolClass
 	int m_dayLesson;
 	std::vector<TimeLesson> m_timeLesson;
 
+	std::vector<std::vector<Lesson>> m_time_table;
+
 public:
 	SchoolClass(int number, char parallel,int dayLesson, std::vector<TimeLesson>& timeLesson)
-		: m_number(number), m_parallel(parallel), m_dayLesson(dayLesson), m_timeLesson(timeLesson) {}
+		: m_number(number), m_parallel(parallel), m_dayLesson(dayLesson), m_timeLesson(timeLesson)
+	{
+		m_timeLesson.resize(m_dayLesson);
+	}
+
+	std::vector<TimeLesson>& getTimeLesson()
+	{
+		return m_timeLesson;
+	}
+
+	void newLesson(int day, const Lesson& lesson)
+	{
+		m_time_table[day].push_back(lesson);
+	}
+
 };
 
 std::string cinSchoolObject(std::string text = "Введите предмет(stop): ")
@@ -199,7 +238,8 @@ int main()
 				break;
 			object.push_back(a);
 		}
-		teacher.push_back(Teacher(name, object));
+		int maxLessonDay(cinInt("Сколько уроков в день у учителя: "));
+		teacher.push_back(Teacher(name, maxLessonDay, object));
 		if (cinSchoolObject("Вводить ещё учителя(yes, no): ") == "no")	break;
 	}
 
@@ -258,6 +298,25 @@ int main()
 
 #pragma endregion
 
+#pragma region MyRegion
 
+	{
+		for (auto& a : schoolClass)
+		{
+
+		}
+		for (size_t i = 0; i < length; i++)
+		{
+			for (auto& a : schoolClass)
+			{
+				if ()
+				{
+					a.newLesson(0, a.getTimeLesson()[0].getLesson());
+				}
+			}
+		}
+	}
+
+#pragma endregion
 
 }
